@@ -126,10 +126,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-<<<<<<< HEAD
-=======
         // Soft delete produk agar data transaksi tetap bisa terjaga.
->>>>>>> e11882444d3fcdf235a4c2b226280abc617eceba
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
