@@ -120,10 +120,6 @@ class EmployeeController extends Controller
         if ($employee->id === auth()->id()) {
             return back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
-        
-        if ($employee->avatar) {
-            Storage::disk('public')->delete($employee->avatar);
-        }
 
         $employee->delete();
         return redirect()->route('employees.index')->with('success', 'Pegawai dihapus.');
