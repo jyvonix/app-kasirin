@@ -126,11 +126,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        // Hapus gambar fisik sebelum hapus data
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
-        }
-
+        // Soft delete produk agar data transaksi tetap bisa terjaga.
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');

@@ -20,7 +20,7 @@ class TransactionDetail extends Model
     // Relasi balik ke Produk
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 
     // Relasi ke Transaksi Utama
