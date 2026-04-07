@@ -99,7 +99,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'barcode' => 'nullable|string|unique:products,barcode,' . $product->id,
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $data = $request->all();
