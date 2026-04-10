@@ -146,35 +146,41 @@ class TransactionController extends Controller
 
             // 8. Handle Midtrans
             if ($request->payment_method === 'midtrans') {
-                // FORCE LOAD CONFIG (Super Fix for Hosting)
-                Config::$serverKey = trim((string) config('services.midtrans.server_key'));
-                Config::$isProduction = (bool) config('services.midtrans.is_production');
-                Config::$isSanitized = (bool) config('services.midtrans.is_sanitized');
-                Config::$is3ds = (bool) config('services.midtrans.is_3ds');
+                // SISTEM DETEKSI OTOMATIS (Anti-401 Bug)
+                $rawKey = trim((string) config('services.midtrans.server_key'));
+                
+                // Jika Key diawali 'SB-', paksa mode Sandbox. Jika tidak, paksa Production.
+                $isProductionKey = !str_starts_with($rawKey, 'SB-');
+                
+                Config::$serverKey = $rawKey;
+                Config::$isProduction = $isProductionKey; // Deteksi Otomatis
+                Config::$isSanitized = true;
+                Config::$is3ds = true;
 
-                // Validasi Cepat (Cegah Key Kosong)
+                // Log untuk pengecekan di hosting (Cek storage/logs/laravel.log)
+                \Log::info("Midtrans Attempt: Mode " . ($isProductionKey ? 'PRODUCTION' : 'SANDBOX') . " detected from Key Prefix.");
+
                 if (empty(Config::$serverKey)) {
-                    throw new \Exception("Server Key Midtrans belum diatur di .env hosting Anda!");
+                    throw new \Exception("Server Key Midtrans Kosong! Cek .env Anda.");
                 }
 
                 $params = [
                     'transaction_details' => [
                         'order_id' => $invoiceCode,
-                        'gross_amount' => (int) $grandTotal, // Midtrans butuh integer
+                        'gross_amount' => (int) $grandTotal,
                     ],
                     'customer_details' => [
-                        'first_name' => 'Pelanggan',
-                        'last_name' => Auth::user()->name, // Lebih personal
+                        'first_name' => Auth::user()->name,
                         'email' => Auth::user()->email,
                     ],
                 ];
 
                 try {
                     $snapToken = Snap::getSnapToken($params);
-                } catch (\Exception $midtransError) {
-                    // Berikan detail error yang lebih teknis jika 401
-                    \Log::error('Midtrans API Error: ' . $midtransError->getMessage());
-                    throw new \Exception("Gagal menghubungi Midtrans: " . $midtransError->getMessage());
+                } catch (\Exception $e) {
+                    \Log::error("Midtrans Error 401/Unauthorized: " . $e->getMessage());
+                    // Jika masih 401, kemungkinan besar Key salah atau IP Hosting belum di-whitelist
+                    throw new \Exception("Koneksi Midtrans Gagal: " . $e->getMessage() . ". Pastikan Server Key benar dan IP Hosting sudah di-Whitelist di Dashboard Midtrans.");
                 }
                 
                 $transaction->update(['snap_token' => $snapToken]);
