@@ -86,8 +86,47 @@
                 });
             @endif
 
+            @if($errors->any())
+                Toast.fire({
+                    icon: 'error',
+                    title: "{{ $errors->first() }}",
+                    background: '#ffffff',
+                    color: '#991b1b',
+                    iconColor: '#ef4444'
+                });
+            @endif
+
             // 2. Global Delete Confirmation (The "Anti-Jadul" Script)
             document.addEventListener('DOMContentLoaded', function () {
+                // Logout Confirmation
+                const logoutForms = document.querySelectorAll('.logout-confirm');
+                logoutForms.forEach(form => {
+                    form.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Ingin Keluar?',
+                            text: "Anda harus login kembali untuk mengakses sistem.",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#4f46e5', // Indigo
+                            cancelButtonColor: '#f3f4f6', // Gray
+                            confirmButtonText: 'Ya, Keluar!',
+                            cancelButtonText: 'Batal',
+                            reverseButtons: true,
+                            customClass: {
+                                popup: 'rounded-2xl shadow-2xl border border-gray-100',
+                                confirmButton: 'swal-confirm-btn-indigo',
+                                cancelButton: 'swal-cancel-btn',
+                                title: 'text-xl font-bold text-gray-800',
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.submit();
+                            }
+                        });
+                    });
+                });
+
                 const deleteForms = document.querySelectorAll('.delete-form');
                 
                 deleteForms.forEach(form => {
@@ -198,6 +237,14 @@
                 padding: 10px 24px !important;
                 font-weight: 700 !important;
                 box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4) !important;
+            }
+            .swal-confirm-btn-indigo {
+                background-color: #4f46e5 !important; /* Tailwind Indigo-600 */
+                color: white !important;
+                border-radius: 0.75rem !important;
+                padding: 10px 24px !important;
+                font-weight: 700 !important;
+                box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4) !important;
             }
             .swal-cancel-btn {
                 background-color: #f3f4f6 !important; /* Tailwind Gray-100 */

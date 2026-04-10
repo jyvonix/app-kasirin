@@ -148,7 +148,7 @@
 
     <!-- Logout Area (Fixed to bottom, but sidebar is flex) -->
     <div class="flex-shrink-0 p-4 border-t border-white/5 bg-[#251A4A]">
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="logout-confirm">
             @csrf
             <button type="submit" class="flex items-center w-full px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group">
                 <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center mr-3 group-hover:bg-red-500 transition-colors">
