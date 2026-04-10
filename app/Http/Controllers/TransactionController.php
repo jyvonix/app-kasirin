@@ -146,6 +146,17 @@ class TransactionController extends Controller
 
             // 8. Handle Midtrans
             if ($request->payment_method === 'midtrans') {
+                // FORCE LOAD CONFIG (Super Fix for Hosting)
+                Config::$serverKey = trim((string) config('services.midtrans.server_key'));
+                Config::$isProduction = (bool) config('services.midtrans.is_production');
+                Config::$isSanitized = (bool) config('services.midtrans.is_sanitized');
+                Config::$is3ds = (bool) config('services.midtrans.is_3ds');
+
+                // Validasi Cepat (Cegah Key Kosong)
+                if (empty(Config::$serverKey)) {
+                    throw new \Exception("Server Key Midtrans belum diatur di .env hosting Anda!");
+                }
+
                 $params = [
                     'transaction_details' => [
                         'order_id' => $invoiceCode,
@@ -153,13 +164,19 @@ class TransactionController extends Controller
                     ],
                     'customer_details' => [
                         'first_name' => 'Pelanggan',
-                        'last_name' => 'Umum',
-                        'email' => 'pelanggan@example.com',
-                        'phone' => '081234567890',
+                        'last_name' => Auth::user()->name, // Lebih personal
+                        'email' => Auth::user()->email,
                     ],
                 ];
 
-                $snapToken = Snap::getSnapToken($params);
+                try {
+                    $snapToken = Snap::getSnapToken($params);
+                } catch (\Exception $midtransError) {
+                    // Berikan detail error yang lebih teknis jika 401
+                    \Log::error('Midtrans API Error: ' . $midtransError->getMessage());
+                    throw new \Exception("Gagal menghubungi Midtrans: " . $midtransError->getMessage());
+                }
+                
                 $transaction->update(['snap_token' => $snapToken]);
             }
 
