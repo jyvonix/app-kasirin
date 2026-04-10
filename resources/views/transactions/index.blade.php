@@ -3,7 +3,7 @@
 
     <!-- Midtrans Snap.js -->
     <script type="text/javascript"
-            src="https://app.sandbox.midtrans.com/snap/snap.js"
+            src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
             data-client-key="{{ config('services.midtrans.client_key') }}"></script>
 
     <!-- POS CONTAINER (Posisi Presisi & Full View) -->
