@@ -19,15 +19,20 @@ class TransactionController extends Controller
     public function __construct()
     {
         // Konfigurasi Midtrans
-        Config::$serverKey = (string) config('services.midtrans.server_key');
-        // Pastikan is_production adalah boolean murni
-        Config::$isProduction = (bool) config('services.midtrans.is_production');
+        $serverKey = trim((string) config('services.midtrans.server_key'));
+        $isProduction = (bool) config('services.midtrans.is_production');
+
+        // AUTO-DETECTION: Verifikasi apakah Key cocok dengan Environment
+        if ($isProduction && str_starts_with($serverKey, 'SB-')) {
+            \Log::error('MIDTRANS ERROR: Anda menggunakan Key SANDBOX di lingkungan PRODUCTION. Ubah MIDTRANS_IS_PRODUCTION menjadi false di .env');
+        } elseif (!$isProduction && !str_starts_with($serverKey, 'SB-') && !empty($serverKey)) {
+            \Log::error('MIDTRANS ERROR: Anda menggunakan Key PRODUCTION di lingkungan SANDBOX. Ubah MIDTRANS_IS_PRODUCTION menjadi true di .env');
+        }
+
+        Config::$serverKey = $serverKey;
+        Config::$isProduction = $isProduction;
         Config::$isSanitized = (bool) config('services.midtrans.is_sanitized');
         Config::$is3ds = (bool) config('services.midtrans.is_3ds');
-
-        if (empty(Config::$serverKey)) {
-            \Log::error('Midtrans Server Key is empty. Check your .env file.');
-        }
     }
 
     public function index()
