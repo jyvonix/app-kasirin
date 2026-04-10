@@ -2,6 +2,29 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan; // Tambahkan ini
+// ... (keep other imports)
+
+// --- EMERGENCY FIX: CLEAR CACHE & DEBUG MIDTRANS ---
+Route::get('/debug-midtrans', function() {
+    try {
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('cache:clear');
+        
+        return [
+            'message' => 'Cache telah dibersihkan secara otomatis!',
+            'config_is_production' => config('services.midtrans.is_production'),
+            'midtrans_sdk_is_production' => \Midtrans\Config::$isProduction,
+            'server_key_prefix' => substr(\Midtrans\Config::$serverKey, 0, 7) . '...',
+            'server_key_empty' => empty(\Midtrans\Config::$serverKey),
+            'app_env' => env('APP_ENV'),
+        ];
+    } catch (\Exception $e) {
+        return ['error' => $e->getMessage()];
+    }
+});
+
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DashboardController;
@@ -60,6 +83,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/absensi', [OwnerAttendanceController::class, 'index'])->name('attendance.index');
         Route::patch('/absensi/{attendance}/approve', [OwnerAttendanceController::class, 'approve'])->name('attendance.approve');
         Route::patch('/absensi/{attendance}/reject', [OwnerAttendanceController::class, 'reject'])->name('attendance.reject');
+    });
+
+    // --- DEBUG MIDTRANS (CEK DI HOSTING) ---
+    Route::get('/debug-midtrans', function() {
+        return [
+            'config_is_production' => config('services.midtrans.is_production'),
+            'midtrans_sdk_is_production' => \Midtrans\Config::$isProduction,
+            'server_key_prefix' => substr(\Midtrans\Config::$serverKey, 0, 7) . '...',
+            'server_key_empty' => empty(\Midtrans\Config::$serverKey),
+            'app_env' => env('APP_ENV'),
+        ];
     });
 
     // --- FITUR SCANNER ABSENSI (MODERN) ---

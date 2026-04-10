@@ -16,25 +16,6 @@ use Midtrans\Snap;
 
 class TransactionController extends Controller
 {
-    public function __construct()
-    {
-        // Konfigurasi Midtrans
-        $serverKey = trim((string) config('services.midtrans.server_key'));
-        $isProduction = (bool) config('services.midtrans.is_production');
-
-        // AUTO-DETECTION: Verifikasi apakah Key cocok dengan Environment
-        if ($isProduction && str_starts_with($serverKey, 'SB-')) {
-            \Log::error('MIDTRANS ERROR: Anda menggunakan Key SANDBOX di lingkungan PRODUCTION. Ubah MIDTRANS_IS_PRODUCTION menjadi false di .env');
-        } elseif (!$isProduction && !str_starts_with($serverKey, 'SB-') && !empty($serverKey)) {
-            \Log::error('MIDTRANS ERROR: Anda menggunakan Key PRODUCTION di lingkungan SANDBOX. Ubah MIDTRANS_IS_PRODUCTION menjadi true di .env');
-        }
-
-        Config::$serverKey = $serverKey;
-        Config::$isProduction = $isProduction;
-        Config::$isSanitized = (bool) config('services.midtrans.is_sanitized');
-        Config::$is3ds = (bool) config('services.midtrans.is_3ds');
-    }
-
     public function index()
     {
         // Ambil produk yang stoknya > 0
