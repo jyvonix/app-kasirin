@@ -19,10 +19,15 @@ class TransactionController extends Controller
     public function __construct()
     {
         // Konfigurasi Midtrans
-        Config::$serverKey = config('services.midtrans.server_key');
-        Config::$isProduction = config('services.midtrans.is_production');
-        Config::$isSanitized = config('services.midtrans.is_sanitized');
-        Config::$is3ds = config('services.midtrans.is_3ds');
+        Config::$serverKey = (string) config('services.midtrans.server_key');
+        // Pastikan is_production adalah boolean murni
+        Config::$isProduction = (bool) config('services.midtrans.is_production');
+        Config::$isSanitized = (bool) config('services.midtrans.is_sanitized');
+        Config::$is3ds = (bool) config('services.midtrans.is_3ds');
+
+        if (empty(Config::$serverKey)) {
+            \Log::error('Midtrans Server Key is empty. Check your .env file.');
+        }
     }
 
     public function index()
