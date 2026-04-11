@@ -9,8 +9,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Exports\FinancialExport;
 use App\Exports\ProductExport;
-use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
+// Menggunakan alias global yang didaftarkan di AppServiceProvider (Lebih stabil di Hosting)
 
 class ReportController extends Controller
 {
@@ -42,7 +41,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $transactions = $this->getFinancialData($startDate, $endDate);
 
-        return Excel::download(new FinancialExport($transactions), 'Laporan-Keuangan-' . $startDate . '-to-' . $endDate . '.xlsx');
+        return \Excel::download(new FinancialExport($transactions), 'Laporan-Keuangan-' . $startDate . '-to-' . $endDate . '.xlsx');
     }
 
     public function exportFinancialPdf(Request $request)
@@ -52,7 +51,7 @@ class ReportController extends Controller
         $transactions = $this->getFinancialData($startDate, $endDate);
         $totalRevenue = $transactions->sum('total_price');
 
-        $pdf = Pdf::loadView('owner.reports.pdf.financial', compact('transactions', 'totalRevenue', 'startDate', 'endDate'));
+        $pdf = \Pdf::loadView('owner.reports.pdf.financial', compact('transactions', 'totalRevenue', 'startDate', 'endDate'));
         return $pdf->download('Laporan-Keuangan-' . $startDate . '-to-' . $endDate . '.pdf');
     }
 
@@ -68,13 +67,13 @@ class ReportController extends Controller
     public function exportProductExcel()
     {
         $products = Product::with('category')->get();
-        return Excel::download(new ProductExport($products), 'Laporan-Stok-Produk.xlsx');
+        return \Excel::download(new ProductExport($products), 'Laporan-Stok-Produk.xlsx');
     }
 
     public function exportProductPdf()
     {
         $products = Product::with('category')->get();
-        $pdf = Pdf::loadView('owner.reports.pdf.product', compact('products'));
+        $pdf = \Pdf::loadView('owner.reports.pdf.product', compact('products'));
         return $pdf->download('Laporan-Stok-Produk.pdf');
     }
 }
