@@ -11,6 +11,7 @@ use App\Models\Setting; // Import Setting Model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
 use Midtrans\Snap;
 
@@ -97,7 +98,7 @@ class TransactionController extends Controller
 
             // 4. Validasi Pembayaran
             $paymentStatus = 'pending';
-            $snapToken = null;
+            $snapToken = null; // Inisialisasi awal agar tidak undefined
             $changeAmount = 0;
             $cashAmount = 0;
 
@@ -111,10 +112,12 @@ class TransactionController extends Controller
             }
 
             // 5. Buat Transaksi
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
             $invoiceCode = 'INV-' . date('YmdHis') . '-' . rand(100, 999);
             
             $transaction = Transaction::create([
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'voucher_id' => $voucher ? $voucher->id : null,
                 'invoice_code' => $invoiceCode,
                 'subtotal' => $subtotal,
@@ -148,39 +151,60 @@ class TransactionController extends Controller
             if ($request->payment_method === 'midtrans') {
                 // SISTEM DETEKSI OTOMATIS (Anti-401 Bug)
                 $rawKey = trim((string) config('services.midtrans.server_key'));
+                $clientKey = trim((string) config('services.midtrans.client_key'));
                 
+                // Validasi format kunci (Jangan sampai Client Key tertukar dengan Server Key)
+                if (str_contains($rawKey, 'client')) {
+                    throw new \Exception("KESALAHAN KONFIGURASI: Anda memasukkan CLIENT_KEY ke dalam kolom SERVER_KEY di .env. Harap periksa kembali.");
+                }
+
                 // Jika Key diawali 'SB-', paksa mode Sandbox. Jika tidak, paksa Production.
                 $isProductionKey = !str_starts_with($rawKey, 'SB-');
                 
+                // Sinkronisasi Config Midtrans
                 Config::$serverKey = $rawKey;
-                Config::$isProduction = $isProductionKey; // Deteksi Otomatis
+                Config::$clientKey = $clientKey;
+                Config::$isProduction = $isProductionKey; 
                 Config::$isSanitized = true;
                 Config::$is3ds = true;
 
-                // Log untuk pengecekan di hosting (Cek storage/logs/laravel.log)
+                // Log untuk diagnosa (Cek storage/logs/laravel.log)
                 \Log::info("Midtrans Attempt: Mode " . ($isProductionKey ? 'PRODUCTION' : 'SANDBOX') . " detected from Key Prefix.");
+                
+                // Cek jika ada mismatch dengan .env
+                if ($isProductionKey && !config('services.midtrans.is_production')) {
+                    \Log::warning("Midtrans Mismatch: Key is PRODUCTION but MIDTRANS_IS_PRODUCTION is false in .env. System will force PRODUCTION mode to avoid 401.");
+                }
 
                 if (empty(Config::$serverKey)) {
-                    throw new \Exception("Server Key Midtrans Kosong! Cek .env Anda.");
+                    throw new \Exception("Server Key Midtrans Kosong! Cek file .env Anda.");
                 }
 
                 $params = [
                     'transaction_details' => [
                         'order_id' => $invoiceCode,
-                        'gross_amount' => (int) $grandTotal,
+                        'gross_amount' => (int) round($grandTotal),
                     ],
                     'customer_details' => [
-                        'first_name' => Auth::user()->name,
-                        'email' => Auth::user()->email,
+                        'first_name' => $user->name,
+                        'email' => $user->email,
                     ],
                 ];
 
                 try {
                     $snapToken = Snap::getSnapToken($params);
                 } catch (\Exception $e) {
-                    \Log::error("Midtrans Error 401/Unauthorized: " . $e->getMessage());
-                    // Jika masih 401, kemungkinan besar Key salah atau IP Hosting belum di-whitelist
-                    throw new \Exception("Koneksi Midtrans Gagal: " . $e->getMessage() . ". Pastikan Server Key benar dan IP Hosting sudah di-Whitelist di Dashboard Midtrans.");
+                    $msg = $e->getMessage();
+                    \Log::error("Midtrans Error 401/Unauthorized: " . $msg);
+                    
+                    if (str_contains($msg, '401')) {
+                        $errorDetail = $isProductionKey 
+                            ? "Kunci PRODUCTION ditolak. Pastikan: 1. Server Key benar, 2. IP Hosting sudah di-whitelist di Dashboard Midtrans, 3. Akun sudah Aktif (bukan Sandbox)."
+                            : "Kunci SANDBOX ditolak. Pastikan Server Key diawali 'SB-' dan benar.";
+                        throw new \Exception("Koneksi Midtrans Gagal (401): " . $errorDetail);
+                    }
+                    
+                    throw new \Exception("Midtrans API Error: " . $msg);
                 }
                 
                 $transaction->update(['snap_token' => $snapToken]);
@@ -311,5 +335,28 @@ class TransactionController extends Controller
             }),
             'print_url' => route('transactions.print', $transaction->id)
         ]);
+    }
+
+    public function destroy(Transaction $transaction)
+    {
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->back()->with('error', 'Hanya Admin yang dapat menghapus transaksi.');
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            // Hapus detail transaksi terlebih dahulu
+            $transaction->details()->delete();
+            
+            // Hapus transaksi utama
+            $transaction->delete();
+            
+            DB::commit();
+            return redirect()->route('transactions.history')->with('success', 'Transaksi berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menghapus transaksi: ' . $e->getMessage());
+        }
     }
 }

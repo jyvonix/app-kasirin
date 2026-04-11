@@ -38,7 +38,9 @@ return [
     'midtrans' => [
         'server_key' => env('MIDTRANS_SERVER_KEY'),
         'client_key' => env('MIDTRANS_CLIENT_KEY'),
-        'is_production' => filter_var(env('MIDTRANS_IS_PRODUCTION', false), FILTER_VALIDATE_BOOLEAN),
+        // Deteksi Otomatis: Jika key diawali 'SB-', paksa Sandbox meskipun .env disetel true.
+        // Jika tidak diawali 'SB-', paksa Production meskipun .env disetel false.
+        'is_production' => !str_starts_with(env('MIDTRANS_SERVER_KEY', ''), 'SB-') && !empty(env('MIDTRANS_SERVER_KEY')),
         'is_sanitized' => true,
         'is_3ds' => true,
     ],

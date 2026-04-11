@@ -134,7 +134,7 @@
             </a>
         @endif
 
-        @if(Auth::user()->isOwner() || Auth::user()->isCashier())
+        @if(Auth::user()->isOwner() || Auth::user()->isCashier() || Auth::user()->isAdmin())
             <div class="pt-4 pb-2 px-4">
                 <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Riwayat</p>
             </div>

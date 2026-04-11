@@ -72,15 +72,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
+// --- OWNER AREA ---
+Route::middleware(['role:owner,admin'])->prefix('owner')->name('owner.')->group(function () {
+    Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
 
-    // --- OWNER AREA ---
-    Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
-        Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
-        
-        Route::get('/laporan/keuangan', [OwnerReportController::class, 'financial'])->name('reports.financial');
-        Route::get('/laporan/produk', [OwnerReportController::class, 'products'])->name('reports.products');
+    // Reports
+    Route::get('/reports/financial', [OwnerReportController::class, 'financial'])->name('reports.financial');
+    Route::get('/reports/financial/excel', [OwnerReportController::class, 'exportFinancialExcel'])->name('reports.financial.excel');
+    Route::get('/reports/financial/pdf', [OwnerReportController::class, 'exportFinancialPdf'])->name('reports.financial.pdf');
 
-        Route::get('/absensi', [OwnerAttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/reports/products', [OwnerReportController::class, 'products'])->name('reports.products');
+    Route::get('/reports/products/excel', [OwnerReportController::class, 'exportProductExcel'])->name('reports.products.excel');
+    Route::get('/reports/products/pdf', [OwnerReportController::class, 'exportProductPdf'])->name('reports.products.pdf');
+
+    Route::get('/attendance', [OwnerAttendanceController::class, 'index'])->name('attendance.index');
         Route::patch('/absensi/{attendance}/approve', [OwnerAttendanceController::class, 'approve'])->name('attendance.approve');
         Route::patch('/absensi/{attendance}/reject', [OwnerAttendanceController::class, 'reject'])->name('attendance.reject');
     });
@@ -116,8 +121,13 @@ Route::middleware('auth')->group(function () {
     });
 
 // --- REPORT & HISTORY AREA ---
-    Route::get('/riwayat-transaksi', [TransactionController::class, 'history'])->name('transactions.history');
-    Route::get('/riwayat-transaksi/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+    Route::middleware(['role:cashier,admin,owner'])->group(function () {
+        Route::get('/riwayat-transaksi', [TransactionController::class, 'history'])->name('transactions.history');
+        Route::get('/riwayat-transaksi/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+        Route::delete('/riwayat-transaksi/{transaction}', [TransactionController::class, 'destroy'])
+            ->name('transactions.destroy')
+            ->middleware('role:admin');
+    });
 });
 
 require __DIR__.'/auth.php';

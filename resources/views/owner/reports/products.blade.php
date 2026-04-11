@@ -4,12 +4,26 @@
         <div class="bg-gradient-to-r from-indigo-900 via-purple-800 to-violet-900 pb-24 pt-12 px-4 sm:px-6 lg:px-8 shadow-xl">
             <div class="max-w-7xl mx-auto">
                 <div class="flex justify-between items-center text-white">
-                    <div>
-                        <h2 class="text-3xl font-bold tracking-tight flex items-center gap-2">
-                            <svg class="w-8 h-8 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                            Inventaris & Stok Produk
-                        </h2>
-                        <p class="text-purple-200 mt-1 ml-10">Pantau ketersediaan stok barang secara real-time.</p>
+                    <div class="flex flex-col md:flex-row gap-3 items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-tight flex items-center gap-2">
+                                <svg class="w-8 h-8 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                Inventaris & Stok Produk
+                            </h2>
+                            <p class="text-purple-200 mt-1 ml-10">Pantau ketersediaan stok barang secara real-time.</p>
+                        </div>
+                        
+                        <!-- Export Buttons -->
+                        <div class="flex gap-2 ml-auto">
+                            <a href="{{ route('owner.reports.products.excel') }}" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition shadow-lg border border-emerald-400/50 backdrop-blur-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Excel
+                            </a>
+                            <a href="{{ route('owner.reports.products.pdf') }}" class="flex items-center gap-2 px-5 py-2.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 transition shadow-lg border border-rose-400/50 backdrop-blur-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                PDF
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

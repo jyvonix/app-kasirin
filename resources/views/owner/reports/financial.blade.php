@@ -13,18 +13,32 @@
                     </div>
                     
                     <!-- Filter Form Overlay -->
-                    <form method="GET" action="{{ route('owner.reports.financial') }}" class="flex flex-col sm:flex-row gap-3 bg-white/10 backdrop-blur-sm p-2 rounded-xl border border-white/20">
-                        <div>
-                            <input type="date" name="start_date" value="{{ $startDate }}" class="block w-full rounded-lg border-0 bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-purple-400 sm:text-sm" required>
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <form method="GET" action="{{ route('owner.reports.financial') }}" class="flex flex-col sm:flex-row gap-3 bg-white/10 backdrop-blur-sm p-2 rounded-xl border border-white/20">
+                            <div>
+                                <input type="date" name="start_date" value="{{ $startDate }}" class="block w-full rounded-lg border-0 bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-purple-400 sm:text-sm" required>
+                            </div>
+                            <div class="text-white self-center hidden sm:block">-</div>
+                            <div>
+                                <input type="date" name="end_date" value="{{ $endDate }}" class="block w-full rounded-lg border-0 bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-purple-400 sm:text-sm" required>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-white text-purple-900 rounded-lg font-semibold text-sm hover:bg-gray-100 transition shadow-lg">
+                                Filter
+                            </button>
+                        </form>
+
+                        <!-- Export Buttons -->
+                        <div class="flex gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                            <a href="{{ route('owner.reports.financial.excel', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition shadow-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Excel
+                            </a>
+                            <a href="{{ route('owner.reports.financial.pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg font-bold text-sm hover:bg-rose-600 transition shadow-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                PDF
+                            </a>
                         </div>
-                        <div class="text-white self-center hidden sm:block">-</div>
-                        <div>
-                            <input type="date" name="end_date" value="{{ $endDate }}" class="block w-full rounded-lg border-0 bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-purple-400 sm:text-sm" required>
-                        </div>
-                        <button type="submit" class="px-4 py-2 bg-white text-purple-900 rounded-lg font-semibold text-sm hover:bg-gray-100 transition shadow-lg">
-                            Filter
-                        </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
